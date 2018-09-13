@@ -1,0 +1,42 @@
+{
+  "name": "wool-entity",
+  "version": "1.0.0",
+  "description": "A lib for Entity definition for Wool",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "npm run lint",
+    "test": "tape test/**/*.spec.js |tap-summary --no-progress",
+    "autotest": "nodemon -e js,yml -x 'tape test/**/*.spec.js |tap-summary --no-progress'",
+    "autolinttest": "nodemon -e js,yml -x 'npm run lint && tape test/**/*.spec.js |tap-summary --no-progress'",
+    "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
+    "lint": "eslint index.js test/",
+    "autolint": "nodemon -x eslint index.js test/",
+    "preversion": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicocube/wool-entity.git"
+  },
+  "keywords": [
+    "wool"
+  ],
+  "author": "Nicolas Lochet <nicolas.lochet@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nicocube/wool-entity/issues"
+  },
+  "homepage": "https://github.com/nicocube/wool-entity#readme",
+  "dependencies": {
+    "wool-validate": "^1.0.1"
+  },
+  "devDependencies": {
+    "email-address": "^1.2.2",
+    "eslint": "^5.5.0",
+    "nodemon": "^1.18.4",
+    "nyc": "^13.0.1",
+    "tap-summary": "^4.0.0",
+    "tape": "^4.9.1",
+    "tape-async": "^2.3.0",
+    "wool-store": "^1.2.2"
+  }
+}
