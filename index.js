@@ -11,34 +11,82 @@
 
 const { Id,  Multi } = require('wool-validate')
 
-class Entity {
-  static build(name, fields) {
-    return new Entity(name, fields)
+class WithProxy {
+  constructor(mine) {
+    this.mine = mine instanceof Array ? mine.reduce((p, c) => { p[c] = true; return p }, {}) : (typeof mine === 'object' ? mine : {})
   }
-  constructor(name, fields) {
-    this._name = name
-    this._fields = fields
-    fields.forEach( c => this[c.k] = c )
-    if (! ('id' in this)) {
-      this.id = Id('id', { prefix: name+': ' })
-    }
-    /*
-    name.toLowerCase()+'Id'
-    this[]
-    */
-    let l = this._fields.slice()
-    l.unshift(this.id)
-    this.existing = Multi(l)
-    let n = this._fields.slice()
-    n.unshift(this.id.asNew())
-    this.asNew = Multi(n)
+  withProxy() {
+    let mine = this.mine
+    return new Proxy(this, {
+      has (target, key) {
+        return target.has(key)
+      },
+      get(target, key) {
+        if (mine[key]) return target[key].bind(target)
+        return target.get(key)
+      }
+    })
   }
-
-
-/*
-  async create(store, obj) {
-    return
-  }
-*/
 }
-module.exports = Entity.build
+
+class Entity extends WithProxy {
+  constructor(name, id, fields) {
+    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew'])
+    this.name = name
+    this.id = id
+    this.fields = fields
+  }
+  getEntityName(){ return this.name }
+  getEntityId(){ return this.id }
+  getEntityFields(){ return this.fields }
+  existing(f = ()=>true) {
+    let l = []
+    this.fields.forEach((v, k) => { if (f(k,v)) l.push(v) })
+    return Multi(l)
+  }
+  asNew(f = ()=>true) {
+    let l = []
+    this.fields.forEach((v, k) => {
+      if (f(k,v)) {
+        if (k === this.id) v = v.asNew()
+        l.push(v)
+      }
+    })
+    return Multi(l)
+  }
+  has(key) {
+    return this.fields.has(key)
+  }
+  get(key) {
+    return this.fields.get(key)
+  }
+}
+
+class Registry extends WithProxy {
+  constructor() {
+    super(['add'])
+    this.entities = new Map()
+  }
+  add(name, fieldDefs, opt) {
+    let fields = new Map()
+    fieldDefs.forEach(c => fields.set(c.k, c))
+    let id = opt && ('altid' in opt) ? opt.altid : name.toLowerCase()+'Id'
+    if (! fields.has(id)) {
+      fields.set(id, Id(id, { prefix: name+': ' }))
+    }
+    let entity = new Entity(name, id, fields).withProxy()
+    this.entities.set(name, entity)
+    return entity
+  }
+  has(key) {
+    return this.entities.has(key)
+  }
+  get(key) {
+    return this.entities.get(key)
+  }
+}
+
+module.exports = {
+  Entity, Registry,
+  Entities : new Registry().withProxy()
+}
