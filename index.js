@@ -55,10 +55,10 @@ class Entity extends WithProxy {
     return Multi(l)
   }
   has(key) {
-    return this.fields.has(key)
+    return (key === 'id') ? this.fields.has(this.id) : this.fields.has(key)
   }
   get(key) {
-    return this.fields.get(key)
+    return (key === 'id') ? this.fields.get(this.id) : this.fields.get(key)
   }
 }
 

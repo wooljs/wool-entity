@@ -13,7 +13,7 @@
 
 const test = require('tape-async')
   , { Registry } = require(__dirname + '/../index.js')
-  , { Id, Str, List, Dict } = require('wool-validate')
+  , { Id, Str, List /*, Dict*/, InvalidRuleError } = require('wool-validate')
   , { Store } = require('wool-store')
   , email = require('email-address')
   , crypto = require('crypto')
@@ -34,7 +34,9 @@ test('Entity User, default id, no sub struct', async function(t) {
   let { User } = Entities
 
   await store.set('User: 42', {userId: '42', foo: 'bar'})
+  t.ok(await User.id.validate(store, { userId: '42' }))
   t.ok(await User.userId.validate(store, { userId: '42' }))
+  t.ok(await User.id.asNew().validate(store, { }))
   t.ok(await User.userId.asNew().validate(store, { }))
   t.ok(await User.email.validate(store, { email: 'foo@bar.com' }))
   t.ok(await User.password.validate(store, p = { password: 'xD5Ae8f4ysFG9luB' }))
@@ -47,7 +49,7 @@ test('Entity User, default id, no sub struct', async function(t) {
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  t.plan(10)
+  t.plan(12)
   t.end()
 })
 
@@ -73,34 +75,50 @@ test('Entity Session, custom id, foreign key', async function(t) {
     ], {altid: 'sessid'})
     , store = new Store()
 
+  await store.set('User: 11', {userId: '11', login: 'foo'})
+  await store.set('User: 12', {userId: '12', login: 'bar'})
   await store.set('Session: 42', {sessid: '42', foo: 'bar'})
   t.ok(await Session.sessid.validate(store, { sessid: '42' }))
 
+  t.ok(await Session.asNew().validate(store, { login: 'foo', userId: '11' }))
 
-  t.plan(1)
+  await Session.asNew().validate(store, { login: 'foo', userId: '13' })
+  .then(()=> t.fail('should throw') )
+  .catch(e => {
+    t.ok(e instanceof InvalidRuleError)
+    t.deepEqual(e.toString(), 'InvalidRuleError: invalid userId: 13 does not exist')
+  })
+
+  t.plan(4)
   t.end()
 })
 
-test.skip('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
+test('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
   let Entities = new Registry().withProxy()
     , User = Entities.add('User', [
-      Str('email').predicate(email.isValid),
       Str('login').regex(/^\w{2,}$/),
-      Str('password').regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{8,}$/)
-      .crypto(x => Buffer.from(x).toString('base64')) // base 64 is not a good hash for secure password, but this is a test
     ])
     , Chatroom = Entities.add('Chatroom', [
-      Str('name').regex(/^.{,64}$/),
-      { 'users': List(User.id) },
-      Dict(User.id, User.login),
-      List(Str(/*???*/))
+      Str('name').regex(/^.{0,64}$/),
+      List('users', User.id),
+      //Dict(User.id, User.login),
+      //List(Str(/*???*/))
     ])
     , store = new Store()
 
-  await store.set('Chatroom: 42', {id: '42', foo: 'bar'})
-  t.ok(await Chatroom.id.validate(store, { id: '42' }))
+  await store.set('User: 11', {userId: '11', login: 'foo'})
+  await store.set('User: 12', {userId: '12', login: 'bar'})
+  await store.set('Chatroom: 42', { chatroomId: '42' })
+  t.ok(await Chatroom.id.validate(store, { chatroomId: '42' }))
+  t.ok(await Chatroom.asNew().validate(store, { name: 'bar', users: ['11', '12'] }))
 
+  await Chatroom.asNew().validate(store, { name: 'bar', users: ['11', '12', '13'] })
+  .then(()=> t.fail('should throw') )
+  .catch(e => {
+    t.ok(e instanceof InvalidRuleError)
+    t.deepEqual(e.toString(), 'InvalidRuleError: invalid userId: 13 does not exist')
+  })
 
-  t.plan(9)
+  t.plan(4)
   t.end()
 })
