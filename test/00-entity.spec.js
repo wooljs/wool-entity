@@ -45,11 +45,26 @@ test('Entity User, default id, no sub struct', async function(t) {
   t.ok(await Entities.User.existing().validate(store, p = { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB'}))
   t.deepEqual(p, { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  t.ok(await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB'}))
+  let user42 = await User.byId(store, '42')
+  t.deepEqual(user42, {userId: '42', foo: 'bar'})
+
+  t.ok(await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }))
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  t.plan(12)
+  await User.save(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' })
+
+  let userP = await User.byId(store, p.userId)
+  t.deepEqual(userP, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
+
+  /*
+  userP.email = 'trololo@plop.org'
+  await User.save(store, userP)
+  let userQ = await User.byId(store, p.userId)
+  t.deepEqual(userQ, { userId: p.userId, login: 'foo', email: 'trololo@plop.org', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
+  */
+
+  t.plan(14)
   t.end()
 })
 

@@ -30,10 +30,11 @@ class WithProxy {
 }
 
 class Entity extends WithProxy {
-  constructor(name, id, fields) {
-    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew'])
+  constructor(name, id, fid, fields) {
+    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew', 'byId', 'save'])
     this.name = name
     this.id = id
+    this.fid = fid
     this.fields = fields
   }
   getEntityName(){ return this.name }
@@ -60,6 +61,14 @@ class Entity extends WithProxy {
   get(key) {
     return (key === 'id') ? this.fields.get(this.id) : this.fields.get(key)
   }
+  async byId(store, id) {
+    return await store.get(this.fid.as(id))
+  }
+  async save(store, p) {
+    if (!( this.id in p)) await this.asNew().validate(store, p)
+    else await this.existing().validate(store, p)
+    await store.set(this.fid.as(p[this.id]), p)
+  }
 }
 
 class Registry extends WithProxy {
@@ -74,7 +83,8 @@ class Registry extends WithProxy {
     if (! fields.has(id)) {
       fields.set(id, Id(id, { prefix: name+': ' }))
     }
-    let entity = new Entity(name, id, fields).withProxy()
+    let fid = fields.get(id)
+    let entity = new Entity(name, id, fid, fields).withProxy()
     this.entities.set(name, entity)
     return entity
   }
