@@ -52,19 +52,19 @@ test('Entity User, default id, no sub struct', async function(t) {
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  await User.save(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' })
+  await User.save(store, p)
 
   let userP = await User.byId(store, p.userId)
   t.deepEqual(userP, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  /*
+  //*
   userP.email = 'trololo@plop.org'
   await User.save(store, userP)
   let userQ = await User.byId(store, p.userId)
   t.deepEqual(userQ, { userId: p.userId, login: 'foo', email: 'trololo@plop.org', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
-  */
+  //*/
 
-  t.plan(14)
+  t.plan(15)
   t.end()
 })
 

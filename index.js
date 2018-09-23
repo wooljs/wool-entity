@@ -31,7 +31,7 @@ class WithProxy {
 
 class Entity extends WithProxy {
   constructor(name, id, fid, fields) {
-    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew', 'byId', 'save'])
+    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew', 'exists', 'byId', 'save', 'delete'])
     this.name = name
     this.id = id
     this.fid = fid
@@ -61,13 +61,20 @@ class Entity extends WithProxy {
   get(key) {
     return (key === 'id') ? this.fields.get(this.id) : this.fields.get(key)
   }
+  async exists(store, id) {
+    return await store.has(this.fid.as(id))
+  }
   async byId(store, id) {
     return await store.get(this.fid.as(id))
   }
+  find(store, q) {
+    return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]) )
+  }
   async save(store, p) {
-    if (!( this.id in p)) await this.asNew().validate(store, p)
-    else await this.existing().validate(store, p)
     await store.set(this.fid.as(p[this.id]), p)
+  }
+  async delete(store, p) {
+    await store.del(this.fid.as(p[this.id]), p)
   }
 }
 
