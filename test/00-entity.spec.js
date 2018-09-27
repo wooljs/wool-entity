@@ -101,7 +101,7 @@ test('Entity Session, custom id, foreign key', async function(t) {
   .then(()=> t.fail('should throw') )
   .catch(e => {
     t.ok(e instanceof InvalidRuleError)
-    t.deepEqual(e.toString(), 'InvalidRuleError: invalid userId: 13 does not exist')
+    t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
   })
 
   t.plan(4)
@@ -131,7 +131,7 @@ test('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
   .then(()=> t.fail('should throw') )
   .catch(e => {
     t.ok(e instanceof InvalidRuleError)
-    t.deepEqual(e.toString(), 'InvalidRuleError: invalid userId: 13 does not exist')
+    t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
   })
 
   t.plan(4)
