@@ -11,6 +11,7 @@
     "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
     "lint": "eslint index.js test/",
     "autolint": "nodemon -x eslint index.js test/",
+    "link-all": "for u in $(ls -1d node_modules/wool-* | xargs basename -a); do npm link $u; done;",
     "preversion": "npm test"
   },
   "repository": {
