@@ -12,30 +12,70 @@
 const { Id,  Multi } = require('wool-validate')
 
 class WithProxy {
-  constructor(mine) {
-    this.mine = mine instanceof Array ? mine.reduce((p, c) => { p[c] = true; return p }, {}) : (typeof mine === 'object' ? mine : {})
-  }
   withProxy() {
-    let mine = this.mine
+    let proto = Object.getPrototypeOf(this)
+      , mine = Object.getOwnPropertyNames(proto)
+      .filter(n => !n.startsWith('_'))
+      .reduce((p, c) => {
+        p[c] = true; return p
+      }, {})
     return new Proxy(this, {
       has (target, key) {
-        return target.has(key)
+        return target._has(key)
       },
       get(target, key) {
         if (mine[key]) return target[key].bind(target)
-        return target.get(key)
+        return target._get(key)
       }
     })
   }
 }
 
+class Registry extends WithProxy {
+  constructor() {
+    super()
+    this.entities = new Map()
+  }
+  _has(key) {
+    return this.entities.has(key)
+  }
+  _get(key) {
+    return this.entities.get(key)
+  }
+  add(name, fieldDefs, opt = {}) {
+    let fields = new Map()
+    fieldDefs.forEach(c => fields.set(c.k, c))
+    let id = opt && ('altid' in opt) ? opt.altid : name.toLowerCase()+'Id'
+    if (! fields.has(id)) {
+      fields.set(id, Id(id, { prefix: name+': ' }))
+    }
+    let fid = fields.get(id)
+    let entity = new Entity(name, id, fid, fields, opt.model, opt.methods).withProxy()
+    this.entities.set(name, entity)
+    return entity
+  }
+}
+
 class Entity extends WithProxy {
-  constructor(name, id, fid, fields) {
-    super(['getEntityName', 'getEntityId', 'getEntityFields', 'existing', 'asNew', 'exists', 'byId', 'save', 'delete'])
+  constructor(name, id, fid, fields, model, methods) {
+    super()
     this.name = name
     this.id = id
     this.fid = fid
     this.fields = fields
+    this.model = model
+    this.methods = methods || {}
+  }
+  _find(key, fieldApply, methodApply) {
+    if (key in this.methods) return methodApply(key)
+    if (key === 'id') return fieldApply(this.id)
+    return fieldApply(key)
+  }
+  _has(key) {
+    return this._find(key, k => this.fields.has(k), () => true)
+  }
+  _get(key) {
+    return this._find(key, k => this.fields.get(k), k => this.methods[k].bind(this))
   }
   getEntityName(){ return this.name }
   getEntityId(){ return this.id }
@@ -55,51 +95,28 @@ class Entity extends WithProxy {
     })
     return Multi(l)
   }
-  has(key) {
-    return (key === 'id') ? this.fields.has(this.id) : this.fields.has(key)
-  }
-  get(key) {
-    return (key === 'id') ? this.fields.get(this.id) : this.fields.get(key)
-  }
   async exists(store, id) {
     return await store.has(this.fid.as(id))
   }
   async byId(store, id) {
-    return await store.get(this.fid.as(id))
+    let r = await store.get(this.fid.as(id))
+    //if (this.model) new this.model(r)
+    return r
   }
   find(store, q) {
+    //if (this.model) new this.model(r)
     return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]) )
+  }
+  async findOne(store, q) {
+    let r = await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v]) )
+    //if (this.model) new this.model(r)
+    return r
   }
   async save(store, p) {
     await store.set(this.fid.as(p[this.id]), p)
   }
   async delete(store, p) {
     await store.del(this.fid.as(p[this.id]), p)
-  }
-}
-
-class Registry extends WithProxy {
-  constructor() {
-    super(['add'])
-    this.entities = new Map()
-  }
-  add(name, fieldDefs, opt) {
-    let fields = new Map()
-    fieldDefs.forEach(c => fields.set(c.k, c))
-    let id = opt && ('altid' in opt) ? opt.altid : name.toLowerCase()+'Id'
-    if (! fields.has(id)) {
-      fields.set(id, Id(id, { prefix: name+': ' }))
-    }
-    let fid = fields.get(id)
-    let entity = new Entity(name, id, fid, fields).withProxy()
-    this.entities.set(name, entity)
-    return entity
-  }
-  has(key) {
-    return this.entities.has(key)
-  }
-  get(key) {
-    return this.entities.get(key)
   }
 }
 

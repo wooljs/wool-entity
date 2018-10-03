@@ -68,13 +68,10 @@ test('Entity User, default id, no sub struct', async function(t) {
   t.end()
 })
 
-test('Entity Session, custom id, foreign key', async function(t) {
+test('Entity Session, custom id, foreign key, methods', async function(t) {
   let Entities = new Registry().withProxy()
     , User = Entities.add('User', [
-      Str('email').predicate(email.isValid),
-      Str('login').regex(/^\w{2,}$/),
-      Str('password').regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{8,}$/)
-      .crypto(x => Buffer.from(x).toString('base64')) // base 64 is not a good hash for secure password, but this is a test
+      Str('login').regex(/^\w{2,}$/)
     ])
     , Session = Entities.add('Session', [
       Id('sessid', {prefix: 'Session: ', algo: async () => {
@@ -87,15 +84,26 @@ test('Entity Session, custom id, foreign key', async function(t) {
       } }),
       Str('login').regex(/^\w{2,}$/),
       User.userId
-    ], {altid: 'sessid'})
+    ], {
+      altid: 'sessid',
+      methods: {
+        async userFromSession(store, sessid) {
+          let { userId } = await this.byId(store, sessid)
+          return await User.byId(store, userId)
+        }
+      }
+    })
     , store = new Store()
+    , p = null
+
+  t.ok('userFromSession' in Session)
 
   await store.set('User: 11', {userId: '11', login: 'foo'})
   await store.set('User: 12', {userId: '12', login: 'bar'})
   await store.set('Session: 42', {sessid: '42', foo: 'bar'})
   t.ok(await Session.sessid.validate(store, { sessid: '42' }))
 
-  t.ok(await Session.asNew().validate(store, { login: 'foo', userId: '11' }))
+  t.ok(await Session.asNew().validate(store, p = { login: 'foo', userId: '11' }))
 
   await Session.asNew().validate(store, { login: 'foo', userId: '13' })
   .then(()=> t.fail('should throw') )
@@ -104,7 +112,13 @@ test('Entity Session, custom id, foreign key', async function(t) {
     t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
   })
 
-  t.plan(4)
+  await Session.save(store, p)
+
+  let u = await Session.userFromSession(store, p.sessid)
+
+  t.deepEqual(u, {userId: '11', login: 'foo'})
+
+  t.plan(6)
   t.end()
 })
 
