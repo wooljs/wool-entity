@@ -11,6 +11,15 @@
 
 const { Id,  Multi } = require('wool-validate')
 
+class InvalidEntityError extends Error {
+  constructor(message, ...params) {
+    super(message + (params.length > 0 ? '(' + params.join(', ') + ')': ''))
+    this.name = this.constructor.name
+    Error.captureStackTrace(this, this.constructor)
+    this.params = params
+  }
+}
+
 class WithProxy {
   withProxy() {
     let proto = Object.getPrototypeOf(this)
@@ -98,19 +107,22 @@ class Entity extends WithProxy {
   async exists(store, id) {
     return await store.has(this.fid.as(id))
   }
-  async byId(store, id) {
-    let r = await store.get(this.fid.as(id))
-    //if (this.model) new this.model(r)
+  _modelize(r) {
+    if (this.model) {
+      if (this.model.prototype instanceof Model) return new this.model(r)
+      else throw new InvalidEntityError('entity.affect.model.invalid', this.model)
+    }
     return r
+  }
+  async byId(store, id) {
+    return this._modelize(await store.get(this.fid.as(id)))
   }
   find(store, q) {
     //if (this.model) new this.model(r)
     return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]) )
   }
   async findOne(store, q) {
-    let r = await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v]) )
-    //if (this.model) new this.model(r)
-    return r
+    return this._modelize(await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v])))
   }
   async save(store, p) {
     await store.set(this.fid.as(p[this.id]), p)
@@ -120,7 +132,9 @@ class Entity extends WithProxy {
   }
 }
 
+class Model {}
+
 module.exports = {
-  Entity, Registry,
+  Entity, Registry, Model, InvalidEntityError,
   Entities : new Registry().withProxy()
 }
