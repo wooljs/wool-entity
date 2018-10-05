@@ -12,8 +12,8 @@
 'use strict'
 
 const test = require('tape-async')
-  , { Registry } = require(__dirname + '/../index.js')
-  , { Id, Str, List /*, Dict*/, InvalidRuleError } = require('wool-validate')
+  , { Registry, Model } = require(__dirname + '/../index.js')
+  , { Id, Str, List, Dict, Tuple, InvalidRuleError } = require('wool-validate')
   , { Store } = require('wool-store')
   , email = require('email-address')
   , crypto = require('crypto')
@@ -123,31 +123,55 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
 })
 
 test('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
+  class ChatroomModel extends Model {
+    constructor(o) {
+      super(o)
+    }
+  }
   let Entities = new Registry().withProxy()
     , User = Entities.add('User', [
       Str('login').regex(/^\w{2,}$/),
     ])
     , Chatroom = Entities.add('Chatroom', [
       Str('name').regex(/^.{0,64}$/),
-      List('users', User.id),
-      //Dict(User.id, User.login),
-      //List(Str(/*???*/))
-    ])
+      Dict('users', Tuple(undefined, [User.id, User.login])),
+      List('message',Str())
+    ], {
+      model: ChatroomModel
+    })
     , store = new Store()
+    , p = null
 
   await store.set('User: 11', {userId: '11', login: 'foo'})
   await store.set('User: 12', {userId: '12', login: 'bar'})
-  await store.set('Chatroom: 42', { chatroomId: '42' })
-  t.ok(await Chatroom.id.validate(store, { chatroomId: '42' }))
-  t.ok(await Chatroom.asNew().validate(store, { name: 'bar', users: ['11', '12'] }))
+  await store.set('Chatroom: 42', { chatroomId: '42', name: 'Foo\'s nest', users: {'11': 'foo'}, message: ['Welcome to Foo\'snest!'] })
 
-  await Chatroom.asNew().validate(store, { name: 'bar', users: ['11', '12', '13'] })
+  t.ok(await Chatroom.id.validate(store, { chatroomId: '42' }))
+  t.ok(await Chatroom.asNew().validate(store, p = { name: 'bar', users: {'11': 'foo', '12': 'bar'}, message: [] }))
+
+  await Chatroom.save(store, p)
+
+  await Chatroom.asNew().validate(store, { name: 'barbar', users: {'11': 'foo', '12': 'bar', '13': 'dude'}, message: ['welcome'] })
   .then(()=> t.fail('should throw') )
   .catch(e => {
     t.ok(e instanceof InvalidRuleError)
     t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
   })
 
-  t.plan(4)
+  let chatroom = await Chatroom.byId(store, '42')
+
+  t.ok(chatroom instanceof ChatroomModel)
+
+  for (let [, c] of Chatroom.find(store)) {
+    //console.log(c)
+    t.ok(c instanceof ChatroomModel)
+  }
+
+  chatroom = await Chatroom.findOne(store, ([,x]) => x.name === 'bar')
+  //console.log(chatroom)
+  t.ok(chatroom instanceof ChatroomModel)
+  t.deepEqual(chatroom, p)
+
+  t.plan(9)
   t.end()
 })

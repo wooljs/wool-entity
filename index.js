@@ -108,7 +108,7 @@ class Entity extends WithProxy {
     return await store.has(this.fid.as(id))
   }
   _modelize(r) {
-    if (this.model) {
+    if (this.model && typeof r === 'object') {
       if (this.model.prototype instanceof Model) return new this.model(r)
       else throw new InvalidEntityError('entity.affect.model.invalid', this.model)
     }
@@ -118,8 +118,17 @@ class Entity extends WithProxy {
     return this._modelize(await store.get(this.fid.as(id)))
   }
   find(store, q) {
-    //if (this.model) new this.model(r)
-    return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]) )
+    q = q || (()=>true)
+    let a = store.find(([k,v]) => this.fid.isOne(k) && q([k,v]))
+    if (!this.model) {
+      return a
+    } else {
+      return function* gen() {
+        for (let [k, v] of a) {
+          yield [k, this._modelize(v)]
+        }
+      }.bind(this)()
+    }
   }
   async findOne(store, q) {
     return this._modelize(await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v])))
@@ -132,7 +141,14 @@ class Entity extends WithProxy {
   }
 }
 
-class Model {}
+class Model {
+  constructor(o) {
+    Object.assign(this,o)
+  }
+  /*
+    return Object.assign({},o)
+  */
+}
 
 module.exports = {
   Entity, Registry, Model, InvalidEntityError,
