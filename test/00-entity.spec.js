@@ -122,10 +122,10 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
   t.end()
 })
 
-test('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
+test('Entity Chatroom, Dict of foreign key, Model', async function(t) {
   class ChatroomModel extends Model {
-    constructor(o) {
-      super(o)
+    addMessage(str) {
+      this.message.push(str)
     }
   }
   let Entities = new Registry().withProxy()
@@ -163,15 +163,23 @@ test('Entity Chatroom, list of foreign key, sub Dict', async function(t) {
   t.ok(chatroom instanceof ChatroomModel)
 
   for (let [, c] of Chatroom.find(store)) {
-    //console.log(c)
     t.ok(c instanceof ChatroomModel)
   }
 
   chatroom = await Chatroom.findOne(store, ([,x]) => x.name === 'bar')
-  //console.log(chatroom)
   t.ok(chatroom instanceof ChatroomModel)
   t.deepEqual(chatroom, p)
 
-  t.plan(9)
+  chatroom.name = 'rebar'
+  chatroom.addMessage('plop plop')
+
+  t.ok(Chatroom.existing().validate(store, chatroom))
+  await Chatroom.save(store, chatroom)
+
+  chatroom = await Chatroom.findOne(store, ([,x]) => x.name === 'rebar')
+  t.ok(chatroom instanceof ChatroomModel)
+  t.deepEqual(chatroom, { chatroomId: p.chatroomId, name: 'rebar', users: {'11': 'foo', '12': 'bar'}, message: ['plop plop'] })
+
+  t.plan(12)
   t.end()
 })
