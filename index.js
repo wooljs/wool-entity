@@ -88,7 +88,7 @@ class Entity extends WithProxy {
   }
   getEntityName(){ return this.name }
   getEntityId(){ return this.id }
-  getEntityFields(){ return this.fields }
+  //getEntityFields(){ return this.fields }
   existing(f = ()=>true) {
     let l = []
     this.fields.forEach((v, k) => { if (f(k,v)) l.push(v) })
@@ -136,8 +136,8 @@ class Entity extends WithProxy {
   async save(store, p) {
     await store.set(this.fid.as(p[this.id]), p)
   }
-  async delete(store, p) {
-    await store.del(this.fid.as(p[this.id]), p)
+  async delete(store, k) {
+    await store.del(this.fid.as(k))
   }
 }
 
@@ -145,9 +145,6 @@ class Model {
   constructor(o) {
     Object.assign(this,o)
   }
-  /*
-    return Object.assign({},o)
-  */
 }
 
 module.exports = {
