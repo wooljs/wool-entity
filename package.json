@@ -38,6 +38,6 @@
     "tap-summary": "^4.0.0",
     "tape": "^4.9.1",
     "tape-async": "^2.3.0",
-    "wool-store": "^1.2.4"
+    "wool-store": "^1.2.5"
   }
 }
