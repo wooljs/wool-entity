@@ -139,6 +139,12 @@ class Entity extends WithProxy {
   async delete(store, k) {
     await store.del(this.fid.as(k))
   }
+  async sub(store, src, k, cb, now) {
+    await store.sub(src, this.fid.as(k), cb, now)
+  }
+  async unsub(store, src, k) {
+    await store.unsub(src, this.fid.as(k))
+  }
 }
 
 class Model {

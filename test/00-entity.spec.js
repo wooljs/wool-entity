@@ -191,6 +191,8 @@ test('Entity Chatroom, Dict of foreign key, Model', async function(t) {
   t.ok(chatroom instanceof ChatroomModel)
   t.deepEqual(chatroom, p)
 
+  await Chatroom.sub(store, 'me', p.chatroomId, function(k, v, u) { t.ok(k && v.name === 'rebar' && u === 'set') })
+
   chatroom.name = 'rebar'
   chatroom.addMessage('plop plop')
 
@@ -202,10 +204,11 @@ test('Entity Chatroom, Dict of foreign key, Model', async function(t) {
   t.deepEqual(chatroom, { chatroomId: p.chatroomId, name: 'rebar', users: {'11': 'foo', '12': 'bar'}, message: ['plop plop'] })
 
   t.ok(await Chatroom.exists(store, p.chatroomId))
+  await Chatroom.unsub(store, 'me', p.chatroomId) // to avoid delete pub
   await Chatroom.delete(store, p.chatroomId)
   t.notOk(await Chatroom.exists(store, p.chatroomId))
 
-  t.plan(14)
+  t.plan(15)
   t.end()
 })
 
