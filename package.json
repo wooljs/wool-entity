@@ -12,7 +12,7 @@
     "lint": "eslint index.js test/",
     "autolint": "nodemon -x eslint index.js test/",
     "link-all": "for u in $(ls -1d node_modules/wool-* | xargs basename -a); do npm link $u; done;",
-    "preversion": "npm test"
+    "preversion": "npm test && npm outdated"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "email-address": "^1.2.2",
-    "eslint": "^5.11.1",
+    "eslint": "^5.12.0",
     "nodemon": "^1.18.9",
     "nyc": "^13.1.0",
     "tap-summary": "^4.0.0",
