@@ -119,15 +119,10 @@ class Entity extends WithProxy {
   }
   find(store, q) {
     q = q || (()=>true)
-    let a = store.find(([k,v]) => this.fid.isOne(k) && q([k,v]))
     if (!this.model) {
-      return a
+      return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]))
     } else {
-      return function* gen() {
-        for (let [k, v] of a) {
-          yield [k, this._modelize(v)]
-        }
-      }.bind(this)()
+      return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]), v => this._modelize(v) )
     }
   }
   async findOne(store, q) {
