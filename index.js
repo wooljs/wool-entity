@@ -21,6 +21,9 @@ class InvalidEntityError extends Error {
 }
 
 class WithProxy {
+  constructor() {
+    this.proxy = null
+  }
   withProxy() {
     let proto = Object.getPrototypeOf(this)
       , mine = Object.getOwnPropertyNames(proto)
@@ -28,15 +31,20 @@ class WithProxy {
       .reduce((p, c) => {
         p[c] = true; return p
       }, {})
-    return new Proxy(this, {
-      has (target, key) {
-        return target._has(key)
-      },
-      get(target, key) {
-        if (mine[key]) return target[key].bind(target)
-        return target._get(key)
-      }
-    })
+      , proxy = new Proxy(this, {
+        has (target, key) {
+          return target._has(key)
+        },
+        get(target, key) {
+          if (mine[key]) return target[key].bind(target)
+          return target._get(key)
+        }
+      })
+    this.setProxy(proxy)
+    return proxy
+  }
+  setProxy(proxy) {
+    this.proxy = proxy
   }
 }
 
@@ -84,7 +92,7 @@ class Entity extends WithProxy {
     return this._find(key, k => this.fields.has(k), () => true)
   }
   _get(key) {
-    return this._find(key, k => this.fields.get(k), k => this.methods[k].bind(this))
+    return this._find(key, k => this.fields.get(k), k => this.methods[k].bind(this.proxy))
   }
   getEntityName(){ return this.name }
   getEntityId(){ return this.id }
