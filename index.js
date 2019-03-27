@@ -67,14 +67,14 @@ class Registry extends WithProxy {
       fields.set(id, Id(id, { prefix: name+': ' }))
     }
     let fid = fields.get(id)
-    let entity = new Entity(name, id, fid, fields, opt.model, opt.methods).withProxy()
+    let entity = new Entity(name, id, fid, fields, opt.model, opt.statics, opt.methods).withProxy()
     this.entities.set(name, entity)
     return entity
   }
 }
 
 class Entity extends WithProxy {
-  constructor(name, id, fid, fields, model, methods) {
+  constructor(name, id, fid, fields, model, statics, methods) {
     super()
     this.name = name
     this.id = id
@@ -82,17 +82,19 @@ class Entity extends WithProxy {
     this.fields = fields
     this.model = model
     this.methods = methods || {}
+    this.statics = statics || {}
   }
-  _find(key, fieldApply, methodApply) {
+  _find(key, fieldApply, staticApply, methodApply) {
+    if (key in this.statics) return staticApply(key)
     if (key in this.methods) return methodApply(key)
     if (key === 'id') return fieldApply(this.id)
     return fieldApply(key)
   }
   _has(key) {
-    return this._find(key, k => this.fields.has(k), () => true)
+    return this._find(key, k => this.fields.has(k), () => true, () => true)
   }
   _get(key) {
-    return this._find(key, k => this.fields.get(k), k => this.methods[k].bind(this.proxy))
+    return this._find(key, k => this.fields.get(k), k => this.statics[k], k => this.methods[k].bind(this.proxy))
   }
   getEntityName(){ return this.name }
   getEntityId(){ return this.id }

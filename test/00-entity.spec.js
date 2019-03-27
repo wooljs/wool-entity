@@ -78,8 +78,9 @@ test('Entity User, default id, no sub struct', async function(t) {
 
 test('Entity Session, custom id, foreign key, methods', async function(t) {
   let Entities = new Registry().withProxy()
+    , Login = Str('login').regex(/^\w{2,}$/)
     , User = Entities.add('User', [
-      Str('login').regex(/^\w{2,}$/)
+      Login
     ])
     , Session = Entities.add('Session', [
       Id('sessid', {prefix: 'Session: ', algo: async () => {
@@ -90,7 +91,7 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
           })
         })
       } }),
-      Str('login').regex(/^\w{2,}$/),
+      Login,
       User.userId
     ], {
       altid: 'sessid',
@@ -104,6 +105,9 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
             await store.del(k)
           }
         }
+      },
+      statics : {
+        Login
       }
     })
     , store = new Store()
@@ -139,7 +143,9 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
 
   t.notOk(await Session.byId(store, p.sessid))
 
-  t.plan(7)
+  t.deepEqual(Session.Login, Login)
+
+  t.plan(8)
   t.end()
 })
 
