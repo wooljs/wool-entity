@@ -13,7 +13,7 @@
 
 const test = require('tape-async')
   , { Registry, Model, InvalidEntityError } = require(__dirname + '/../index.js')
-  , { Id, Str, List, Dict, Tuple, InvalidRuleError } = require('wool-validate')
+  , { Id, Str, List, Dict, InvalidRuleError } = require('wool-validate')
   , { Store } = require('wool-store')
   , email = require('email-address')
   , crypto = require('crypto')
@@ -39,24 +39,24 @@ test('Entity User, default id, no sub struct', async function(t) {
   t.ok('email' in User)
 
   await store.set('User: 42', {userId: '42', foo: 'bar'})
-  t.ok(await User.id.validate(store, { userId: '42' }))
-  t.ok(await User.userId.validate(store, { userId: '42' }))
-  t.ok(await User.id.asNew().validate(store, { }))
-  t.ok(await User.userId.asNew().validate(store, { }))
-  t.ok(await User.email.validate(store, { email: 'foo@bar.com' }))
-  t.ok(await User.password.validate(store, p = { password: 'xD5Ae8f4ysFG9luB' }))
+  t.ok('undefined' === typeof await User.id.validate(store, { userId: '42' }))
+  t.ok('undefined' === typeof await User.userId.validate(store, { userId: '42' }))
+  t.ok('undefined' === typeof await User.id.asNew().validate(store, { }))
+  t.ok('undefined' === typeof await User.userId.asNew().validate(store, { }))
+  t.ok('undefined' === typeof await User.email.validate(store, { email: 'foo@bar.com' }))
+  t.ok('undefined' === typeof await User.password.validate(store, p = { password: 'xD5Ae8f4ysFG9luB' }))
   t.deepEqual(p, { password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  t.ok(await Entities.User.existing().validate(store, p = { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB'}))
+  t.ok('undefined' === typeof await Entities.User.existing().validate(store, p = { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB'}))
   t.deepEqual(p, { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
-  t.ok(await Entities.User.asNew(k=> k !== 'email').validate(store, { login: 'foo', password: 'xD5Ae8f4ysFG9luB'}))
-  t.ok(await Entities.User.existing(k=> k !== 'password').validate(store, { userId: '42', login: 'foo', email: 'foo@bar.com'}))
+  t.ok('undefined' === typeof await Entities.User.asNew(k=> k !== 'email').validate(store, { login: 'foo', password: 'xD5Ae8f4ysFG9luB'}))
+  t.ok('undefined' === typeof await Entities.User.existing(k=> k !== 'password').validate(store, { userId: '42', login: 'foo', email: 'foo@bar.com'}))
 
   let user42 = await User.byId(store, '42')
   t.deepEqual(user42, {userId: '42', foo: 'bar'})
 
-  t.ok(await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }))
+  t.ok('undefined' === typeof await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }))
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg=='})
 
@@ -118,15 +118,15 @@ test('Entity Session, custom id, foreign key, methods', async function(t) {
   await store.set('User: 11', {userId: '11', login: 'foo'})
   await store.set('User: 12', {userId: '12', login: 'bar'})
   await store.set('Session: 42', {sessid: '42', foo: 'bar'})
-  t.ok(await Session.sessid.validate(store, { sessid: '42' }))
+  t.ok('undefined' === typeof await Session.sessid.validate(store, { sessid: '42' }))
 
-  t.ok(await Session.asNew().validate(store, p = { login: 'foo', userId: '11' }))
+  t.ok('undefined' === typeof await Session.asNew().validate(store, p = { login: 'foo', userId: '11' }))
 
   await Session.asNew().validate(store, { login: 'foo', userId: '13' })
   .then(()=> t.fail('should throw') )
   .catch(e => {
     t.ok(e instanceof InvalidRuleError)
-    t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
+    t.deepEqual(e.toString(), 'InvalidRuleError: param.should.exists.in.store(ValidId[k:userId], 13)')
   })
 
   await Session.save(store, p)
@@ -161,28 +161,28 @@ test('Entity Chatroom, Dict of foreign key, Model', async function(t) {
     ])
     , Chatroom = Entities.add('Chatroom', [
       Str('name').regex(/^.{0,64}$/),
-      Dict('users', Tuple(undefined, [User.id, User.login])),
+      Dict('users', User.id, User.login),
       List('message',Str())
     ], {
       model: ChatroomModel
     })
     , store = new Store()
     , p = null
+    , ts = new Date()
 
   await store.set('User: 11', {userId: '11', login: 'foo'})
   await store.set('User: 12', {userId: '12', login: 'bar'})
   await store.set('Chatroom: 42', { chatroomId: '42', name: 'Foo\'s nest', users: {'11': 'foo'}, message: ['Welcome to Foo\'snest!'] })
 
-  t.ok(await Chatroom.id.validate(store, { chatroomId: '42' }))
-  t.ok(await Chatroom.asNew().validate(store, p = { name: 'bar', users: {'11': 'foo', '12': 'bar'}, message: [] }))
-
+  t.ok('undefined' === typeof await Chatroom.id.validate(store, { chatroomId: '42' }))
+  t.ok('undefined' === typeof await Chatroom.asNew().validate(store, p = { name: 'bar', users: {'11': 'foo', '12': 'bar'}, message: [] }, ts))
   await Chatroom.save(store, p)
 
-  await Chatroom.asNew().validate(store, { name: 'barbar', users: {'11': 'foo', '12': 'bar', '13': 'dude'}, message: ['welcome'] })
+  await Chatroom.asNew().validate(store, { name: 'barbar', users: {'11': 'foo', '12': 'bar', '13': 'dude'}, message: ['welcome'] }, ts) // same timestamp, but we should be covered by default algo impl
   .then(()=> t.fail('should throw') )
   .catch(e => {
     t.ok(e instanceof InvalidRuleError)
-    t.deepEqual(e.toString(), 'InvalidRuleError: param.check.should.exists.in.store(ValidId[k:userId], 13)')
+    t.deepEqual(e.toString(), 'InvalidRuleError: param.invalid.dict.key(DictCheck[k:users], param.should.exists.in.store(ValidId[k:userId], 13))')
   })
 
   let chatroom = await Chatroom.byId(store, '42')
@@ -202,7 +202,7 @@ test('Entity Chatroom, Dict of foreign key, Model', async function(t) {
   chatroom.name = 'rebar'
   chatroom.addMessage('plop plop')
 
-  t.ok(await Chatroom.existing().validate(store, chatroom))
+  t.ok('undefined' === typeof await Chatroom.existing().validate(store, chatroom))
   await Chatroom.save(store, chatroom)
 
   chatroom = await Chatroom.findOne(store, ([,x]) => x.name === 'rebar')
