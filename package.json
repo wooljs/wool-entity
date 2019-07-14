@@ -32,11 +32,11 @@
   },
   "devDependencies": {
     "email-address": "^1.2.2",
-    "eslint": "^5.16.0",
+    "eslint": "^6.0.1",
     "nodemon": "^1.19.1",
     "nyc": "^14.1.1",
     "tap-summary": "^4.0.0",
-    "tape": "^4.10.2",
+    "tape": "^4.11.0",
     "tape-async": "^2.3.0",
     "wool-store": "^1.2.9"
   }
