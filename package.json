@@ -6,13 +6,12 @@
   "scripts": {
     "pretest": "npm run lint",
     "test": "tape test/**/*.spec.js |tap-summary --no-progress",
-    "autotest": "nodemon -e js,yml -x 'tape test/**/*.spec.js |tap-summary --no-progress'",
-    "autolinttest": "nodemon -e js,yml -x 'npm run lint && tape test/**/*.spec.js |tap-summary --no-progress'",
-    "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
+    "autotest": "nodemon -e js,yml -x 'npm test'",
     "lint": "eslint index.js test/",
-    "autolint": "nodemon -x eslint index.js test/",
-    "link-all": "for u in $(ls -1d node_modules/wool-* | xargs basename -a); do npm link $u; done;",
-    "preversion": "npm test && npm outdated"
+    "autolint": "nodemon -x 'npm run lint'",
+    "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
+    "preversion": "npm test && npm outdated && npm audit",
+    "link-all": "for u in $(ls -1d node_modules/wool-* | xargs basename -a); do npm link $u; done;"
   },
   "repository": {
     "type": "git",
@@ -28,16 +27,16 @@
   },
   "homepage": "https://github.com/nicocube/wool-entity#readme",
   "dependencies": {
-    "wool-validate": "^2.0.4"
+    "wool-validate": "^2.1.0"
   },
   "devDependencies": {
     "email-address": "^1.2.2",
-    "eslint": "^6.0.1",
+    "eslint": "^6.1.0",
     "nodemon": "^1.19.1",
     "nyc": "^14.1.1",
     "tap-summary": "^4.0.0",
     "tape": "^4.11.0",
     "tape-async": "^2.3.0",
-    "wool-store": "^1.2.11"
+    "wool-store": "^1.2.12"
   }
 }
