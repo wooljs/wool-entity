@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/nicocube/wool-entity#readme",
   "dependencies": {
-    "wool-validate": "^2.1.1"
+    "wool-validate": "^2.1.2"
   },
   "devDependencies": {
     "email-address": "^1.2.2",
@@ -35,7 +35,7 @@
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
     "tap-summary": "^4.0.0",
-    "tape": "^4.13.0",
+    "tape": "^4.13.2",
     "tape-async": "^2.3.0",
     "wool-store": "^1.2.13"
   }
