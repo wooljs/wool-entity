@@ -37,6 +37,6 @@
     "tap-summary": "^4.0.0",
     "tape": "^4.13.2",
     "tape-async": "^2.3.0",
-    "wool-store": "^1.2.13"
+    "wool-store": "^1.2.14"
   }
 }
