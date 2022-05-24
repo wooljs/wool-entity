@@ -117,7 +117,7 @@ class Entity extends WithProxy {
   async exists(store, id) {
     return await store.has(this.fid.as(id))
   }
-  _modelize(r) {
+  modelize(r) {
     if (this.model && typeof r === 'object') {
       if (this.model.prototype instanceof Model) return new this.model(r)
       else throw new InvalidEntityError('entity.affect.model.invalid', this.model)
@@ -125,18 +125,18 @@ class Entity extends WithProxy {
     return r
   }
   async byId(store, id) {
-    return this._modelize(await store.get(this.fid.as(id)))
+    return this.modelize(await store.get(this.fid.as(id)))
   }
   find(store, q) {
     q = q || (()=>true)
     if (!this.model) {
       return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]))
     } else {
-      return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]), v => this._modelize(v) )
+      return store.find(([k,v]) => this.fid.isOne(k) && q([k,v]), v => this.modelize(v) )
     }
   }
   async findOne(store, q) {
-    return this._modelize(await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v])))
+    return this.modelize(await store.findOne(([k,v]) => this.fid.isOne(k) && q([k,v])))
   }
   async save(store, p) {
     await store.set(this.fid.as(p[this.id]), p)
