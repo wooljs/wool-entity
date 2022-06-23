@@ -10,7 +10,7 @@
     "lint": "eslint index.js test/",
     "autolint": "nodemon -x 'npm run lint'",
     "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
-    "preversion": "npm test && npm outdated && npm audit",
+    "preversion": "npm test && npm outdated && npm audit --only=prod",
     "link-all": "for u in $(ls -1d node_modules/wool-* | xargs basename -a); do npm link $u; done;"
   },
   "repository": {
@@ -27,16 +27,16 @@
   },
   "homepage": "https://github.com/nicocube/wool-entity#readme",
   "dependencies": {
-    "wool-validate": "^2.2.1"
+    "wool-validate": "^2.2.2"
   },
   "devDependencies": {
+    "@freecube/tap-summary": "^4.0.4",
     "email-address": "^1.2.2",
-    "eslint": "^8.16.0",
+    "eslint": "^8.18.0",
     "nodemon": "^2.0.16",
     "nyc": "^15.1.0",
-    "@freecube/tap-summary": "^4.0.4",
     "tape": "^5.5.3",
     "tape-async": "^2.3.0",
-    "wool-store": "^2.2.0"
+    "wool-store": "^2.2.3"
   }
 }
