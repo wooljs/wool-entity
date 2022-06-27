@@ -33,7 +33,7 @@
     "@freecube/tap-summary": "^4.0.4",
     "email-address": "^1.2.2",
     "eslint": "^8.18.0",
-    "nodemon": "^2.0.16",
+    "nodemon": "^2.0.18",
     "nyc": "^15.1.0",
     "tape": "^5.5.3",
     "tape-async": "^2.3.0",
