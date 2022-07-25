@@ -27,13 +27,13 @@
   },
   "homepage": "https://github.com/nicocube/wool-entity#readme",
   "dependencies": {
-    "wool-validate": "^2.2.2"
+    "wool-validate": "^2.2.3"
   },
   "devDependencies": {
     "@freecube/tap-summary": "^4.0.4",
     "email-address": "^1.2.2",
-    "eslint": "^8.18.0",
-    "nodemon": "^2.0.18",
+    "eslint": "^8.20.0",
+    "nodemon": "^2.0.19",
     "nyc": "^15.1.0",
     "tape": "^5.5.3",
     "tape-async": "^2.3.0",
