@@ -154,6 +154,12 @@ class Entity extends WithProxy {
   async sub(store, src, k, cb, now) {
     await store.sub(src, this.fid.as(k), cb, now)
   }
+  async pub(store, k) {
+    await store.pub(this.fid.as(k))
+  }
+  async hasSub(store, src, k) {
+    return await store.hasSub(src, this.fid.as(k))
+  }
   async unsub(store, src, k) {
     await store.unsub(src, this.fid.as(k))
   }
