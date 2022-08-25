@@ -13,7 +13,8 @@ const { Id, Multi } = require('wool-validate')
 
 class InvalidEntityError extends Error {
   constructor(message, ...params) {
-    super(message + (params.length > 0 ? '(' + params.join(', ') + ')' : ''))
+    const f = (p) => (p && (typeof p === 'object') && p.toString().startsWith('[object')) ? JSON.stringify(p) : p
+    super(message + (params.length > 0 ? '(' + params.map(f).join(', ') + ')' : ''))
     this.name = this.constructor.name
     Error.captureStackTrace(this, this.constructor)
     this.params = params
@@ -137,7 +138,7 @@ class Entity extends WithProxy {
   }
   count(store, q) {
     let count = 0
-    for (const [,] of this.find(store,q)){
+    for (const [,] of this.find(store, q)) {
       count++
     }
     return count
