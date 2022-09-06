@@ -6,7 +6,7 @@
   "scripts": {
     "pretest": "npm run lint",
     "test": "tape test/**/*.spec.js |tap-summary",
-    "autotest": "nodemon -e js,yml -x 'npm test'",
+    "autotest": "nodemon -e js,yml -x 'clear; npm test'",
     "lint": "eslint index.js test/",
     "autolint": "nodemon -x 'npm run lint'",
     "coverage": "nyc tape test/**/*.spec.js && nyc report --reporter=html",
@@ -32,7 +32,7 @@
   "devDependencies": {
     "@freecube/tap-summary": "^4.0.4",
     "email-address": "^1.2.2",
-    "eslint": "^8.22.0",
+    "eslint": "^8.23.0",
     "nodemon": "^2.0.19",
     "nyc": "^15.1.0",
     "tape": "^5.6.0",
