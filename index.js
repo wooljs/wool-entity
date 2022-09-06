@@ -125,6 +125,9 @@ class Entity extends WithProxy {
     }
     return r
   }
+  changed(...l) {
+    return l.map(x => ({ e: this.name, i: x[this.id] }))
+  }
   async byId(store, id) {
     return this.modelize(await store.get(this.fid.as(id)))
   }

@@ -56,7 +56,7 @@ test('Entity User, default id, no sub struct', async function (t) {
   let user42 = await User.byId(store, '42')
   t.deepEqual(user42, { userId: '42', foo: 'bar' })
 
-  t.ok('undefined' === typeof await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }))
+  t.ok('undefined' === typeof await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }, new Date('2022-09-06T11:11:11.111Z')))
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
 
@@ -72,7 +72,12 @@ test('Entity User, default id, no sub struct', async function (t) {
   t.deepEqual(userQ, { userId: p.userId, login: 'foo', email: 'trololo@plop.org', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
   //*/
 
-  t.plan(21)
+  t.deepEqual(User.changed(user42, userP), [
+    {e:'User', i: '42'},
+    {e:'User', i: '0183127f39070000'}
+  ])
+
+  t.plan(22)
   t.end()
 })
 
