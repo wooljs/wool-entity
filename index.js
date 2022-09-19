@@ -9,9 +9,9 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-const { Id, Multi } = require('wool-validate')
+const { InvalidRuleError, Id, Multi } = require('wool-validate')
 
-class InvalidEntityError extends Error {
+class InvalidEntityError extends InvalidRuleError {
   constructor(message, ...params) {
     const f = (p) => (p && (typeof p === 'object') && p.toString().startsWith('[object')) ? JSON.stringify(p) : p
     super(message + (params.length > 0 ? '(' + params.map(f).join(', ') + ')' : ''))
