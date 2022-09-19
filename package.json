@@ -32,8 +32,8 @@
   "devDependencies": {
     "@freecube/tap-summary": "^4.0.4",
     "email-address": "^1.2.2",
-    "eslint": "^8.23.0",
-    "nodemon": "^2.0.19",
+    "eslint": "^8.23.1",
+    "nodemon": "^2.0.20",
     "nyc": "^15.1.0",
     "tape": "^5.6.0",
     "tape-async": "^2.3.0",
