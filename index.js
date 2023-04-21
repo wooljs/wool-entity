@@ -105,6 +105,16 @@ class Entity extends WithProxy {
     this.fields.forEach((v, k) => { if (f(k, v)) l.push(v) })
     return Multi(l)
   }
+  creating(f = () => true) {
+    let l = []
+    this.fields.forEach((v, k) => {
+      if (f(k, v)) {
+        if (k === this.id) v = v.creating()
+        l.push(v)
+      }
+    })
+    return Multi(l)
+  }
   asNew(f = () => true) {
     let l = []
     this.fields.forEach((v, k) => {
@@ -120,7 +130,7 @@ class Entity extends WithProxy {
   }
   modelize(r) {
     if (this.model && typeof r === 'object') {
-      if (this.model.prototype instanceof Model) return new this.model(r)
+      if (this.model.prototype instanceof Model) return new this.model(r, this)
       else throw new InvalidEntityError('entity.affect.model.invalid', this.model)
     }
     return r
@@ -170,8 +180,18 @@ class Entity extends WithProxy {
 }
 
 class Model {
-  constructor(o) {
+  #entity
+  constructor(o, entity) {
     Object.assign(this, o)
+    this.#entity = entity
+  }
+  
+  async sub(store, src, cb, now) {
+    await this.#entity.sub(store, src, this[this.#entity.id], cb, now)
+  }
+
+  async unsub(store, src) {
+    await this.#entity.unsub(store, src, this[this.#entity.id])
   }
 }
 
