@@ -1,6 +1,6 @@
 {
   "name": "wool-entity",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "A lib for Entity definition for Wool",
   "main": "index.js",
   "scripts": {
