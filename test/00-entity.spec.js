@@ -11,7 +11,7 @@
 
 'use strict'
 
-const test = require('tape-async')
+const test = require('tape')
   , { Registry, Model, InvalidEntityError } = require(__dirname + '/../index.js')
   , { Id, Str, List, Dict, InvalidRuleError } = require('wool-validate')
   , { Store } = require('wool-store')
@@ -202,7 +202,7 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
 
   chatroom = await Chatroom.findOne(store, ([, x]) => x.name === 'bar')
   t.ok(chatroom instanceof ChatroomModel)
-  t.deepEqual(chatroom, p)
+  t.deepEqual(chatroom, new ChatroomModel(p))
 
   await Chatroom.sub(store, 'me', p.chatroomId, function (k, v, u) { t.ok(k && v.name === 'rebar' && u === 'set') })
 
@@ -214,7 +214,7 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
 
   chatroom = await Chatroom.findOne(store, ([, x]) => x.name === 'rebar')
   t.ok(chatroom instanceof ChatroomModel)
-  t.deepEqual(chatroom, { chatroomId: p.chatroomId, name: 'rebar', users: { '11': 'foo', '12': 'bar' }, message: ['plop plop'] })
+  t.deepEqual(chatroom, new ChatroomModel({ chatroomId: p.chatroomId, name: 'rebar', users: { '11': 'foo', '12': 'bar' }, message: ['plop plop'] }))
 
   t.ok(await Chatroom.exists(store, p.chatroomId))
   await Chatroom.unsub(store, 'me', p.chatroomId) // to avoid delete pub
