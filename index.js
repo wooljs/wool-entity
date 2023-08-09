@@ -88,6 +88,7 @@ class Entity extends WithProxy {
   _find(key, fieldApply, staticApply, methodApply) {
     if (key in this.statics) return staticApply(key)
     if (key in this.methods) return methodApply(key)
+    if (key === 'model') return this.model
     if (key === 'id') return fieldApply(this.id)
     return fieldApply(key)
   }
@@ -185,7 +186,7 @@ class Model {
     Object.assign(this, o)
     this.#entity = entity
   }
-  
+
   async sub(store, src, cb, now) {
     await this.#entity.sub(store, src, this[this.#entity.id], cb, now)
   }
