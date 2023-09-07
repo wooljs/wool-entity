@@ -106,11 +106,11 @@ class Entity extends WithProxy {
     this.fields.forEach((v, k) => { if (f(k, v)) l.push(v) })
     return Multi(l)
   }
-  creating(f = () => true) {
+  notInStore(f = () => true) {
     let l = []
     this.fields.forEach((v, k) => {
       if (f(k, v)) {
-        if (k === this.id) v = v.creating()
+        if (k === this.id) v = v.notInStore()
         l.push(v)
       }
     })
