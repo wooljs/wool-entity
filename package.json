@@ -33,9 +33,9 @@
     "@freecube/tap-summary": "^4.0.4",
     "c8": "^8.0.1",
     "email-address": "^1.2.2",
-    "eslint": "^8.48.0",
+    "eslint": "^8.53.0",
     "nodemon": "^3.0.1",
-    "tape": "^5.6.6",
+    "tape": "^5.7.2",
     "wool-store": "^2.3.0"
   }
 }
