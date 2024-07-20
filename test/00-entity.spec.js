@@ -9,19 +9,17 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-'use strict'
-
-const test = require('tape')
-  , { Registry, Model, InvalidEntityError } = require(__dirname + '/../index.js')
-  , { Id, Str, List, Dict, InvalidRuleError } = require('wool-validate')
-  , { Store } = require('wool-store')
-  , email = require('email-address')
-  , crypto = require('crypto')
+import test from 'tape'
+import { Registry, Model, InvalidEntityError } from '../index.js'
+import { Id, Str, List, Dict, InvalidRuleError } from 'wool-validate'
+import { Store } from 'wool-store'
+import email from 'email-address'
+import crypto from 'crypto'
 
 test('Entity User, default id, no sub struct', async function (t) {
-  let Entities = new Registry().withProxy()
-    , store = new Store()
-    , p = null
+  const Entities = new Registry().withProxy()
+  const store = new Store()
+  let p = null
 
   Entities.add('User', [
     Str('email').predicate(email.isValid),
@@ -31,7 +29,7 @@ test('Entity User, default id, no sub struct', async function (t) {
   ])
   t.ok('User' in Entities)
 
-  let { User } = Entities
+  const { User } = Entities
 
   t.deepEqual(User.getEntityName(), 'User')
   t.deepEqual(User.getEntityId(), 'userId')
@@ -39,42 +37,42 @@ test('Entity User, default id, no sub struct', async function (t) {
   t.ok('email' in User)
 
   await store.set('User: 42', { userId: '42', foo: 'bar' })
-  t.ok('undefined' === typeof await User.id.validate(store, { userId: '42' }))
-  t.ok('undefined' === typeof await User.userId.validate(store, { userId: '42' }))
-  t.ok('undefined' === typeof await User.id.asNew().validate(store, {}))
-  t.ok('undefined' === typeof await User.userId.asNew().validate(store, {}))
-  t.ok('undefined' === typeof await User.email.validate(store, { email: 'foo@bar.com' }))
-  t.ok('undefined' === typeof await User.password.validate(store, p = { password: 'xD5Ae8f4ysFG9luB' }))
+  t.ok(typeof await User.id.validate(store, { userId: '42' }) === 'undefined')
+  t.ok(typeof await User.userId.validate(store, { userId: '42' }) === 'undefined')
+  t.ok(typeof await User.id.asNew().validate(store, {}) === 'undefined')
+  t.ok(typeof await User.userId.asNew().validate(store, {}) === 'undefined')
+  t.ok(typeof await User.email.validate(store, { email: 'foo@bar.com' }) === 'undefined')
+  t.ok(typeof await User.password.validate(store, p = { password: 'xD5Ae8f4ysFG9luB' }) === 'undefined')
   t.deepEqual(p, { password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
 
-  t.ok('undefined' === typeof await Entities.User.existing().validate(store, p = { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }))
+  t.ok(typeof await Entities.User.existing().validate(store, p = { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }) === 'undefined')
   t.deepEqual(p, { userId: '42', login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
 
-  t.ok('undefined' === typeof await Entities.User.asNew(k => k !== 'email').validate(store, { login: 'foo', password: 'xD5Ae8f4ysFG9luB' }))
-  t.ok('undefined' === typeof await Entities.User.existing(k => k !== 'password').validate(store, { userId: '42', login: 'foo', email: 'foo@bar.com' }))
+  t.ok(typeof await Entities.User.asNew(k => k !== 'email').validate(store, { login: 'foo', password: 'xD5Ae8f4ysFG9luB' }) === 'undefined')
+  t.ok(typeof await Entities.User.existing(k => k !== 'password').validate(store, { userId: '42', login: 'foo', email: 'foo@bar.com' }) === 'undefined')
 
-  let user42 = await User.byId(store, '42')
+  const user42 = await User.byId(store, '42')
   t.deepEqual(user42, { userId: '42', foo: 'bar' })
 
-  t.ok('undefined' === typeof await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }, new Date('2022-09-06T11:11:11.111Z')))
+  t.ok(typeof await Entities.User.asNew().validate(store, p = { login: 'foo', email: 'foo@bar.com', password: 'xD5Ae8f4ysFG9luB' }, new Date('2022-09-06T11:11:11.111Z')) === 'undefined')
   t.ok('userId' in p)
   t.deepEqual(p, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
 
   await User.save(store, p)
 
-  let userP = await User.byId(store, p.userId)
+  const userP = await User.byId(store, p.userId)
   t.deepEqual(userP, { userId: p.userId, login: 'foo', email: 'foo@bar.com', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
 
   //*
   userP.email = 'trololo@plop.org'
   await User.save(store, userP)
-  let userQ = await User.byId(store, p.userId)
+  const userQ = await User.byId(store, p.userId)
   t.deepEqual(userQ, { userId: p.userId, login: 'foo', email: 'trololo@plop.org', password: 'eEQ1QWU4ZjR5c0ZHOWx1Qg==' })
-  //*/
+  //* /
 
   t.deepEqual(User.changed(user42, userP), [
-    {e:'User', i: '42'},
-    {e:'User', i: '0183127f39070000'}
+    { e: 'User', i: '42' },
+    { e: 'User', i: '0183127f39070000' }
   ])
 
   t.plan(22)
@@ -82,52 +80,53 @@ test('Entity User, default id, no sub struct', async function (t) {
 })
 
 test('Entity Session, custom id, foreign key, methods', async function (t) {
-  let Entities = new Registry().withProxy()
-    , Login = Str('login').regex(/^\w{2,}$/)
-    , User = Entities.add('User', [
-      Login
-    ])
-    , Session = Entities.add('Session', [
-      Id('sessid', {
-        prefix: 'Session: ', algo: async () => {
-          return new Promise((resolve, reject) => {
-            crypto.randomBytes(24, (err, buf) => {
-              if (err) return reject(err)
-              resolve(buf.toString('base64'))
-            })
+  const Entities = new Registry().withProxy()
+  const Login = Str('login').regex(/^\w{2,}$/)
+  const User = Entities.add('User', [
+    Login
+  ])
+  const Session = Entities.add('Session', [
+    Id('sessid', {
+      prefix: 'Session: ',
+      algo: async () => {
+        return new Promise((resolve, reject) => {
+          crypto.randomBytes(24, (err, buf) => {
+            if (err) return reject(err)
+            resolve(buf.toString('base64'))
           })
-        }
-      }),
-      Login,
-      User.userId
-    ], {
-      altid: 'sessid',
-      methods: {
-        async userFromSession(store, sessid) {
-          let { userId } = await this.byId(store, sessid)
-          return await User.byId(store, userId)
-        },
-        async deleteAll(store) {
-          for (let [k,] of store.find()) {
-            await store.del(k)
-          }
-        }
-      },
-      statics: {
-        Login
+        })
       }
-    })
-    , store = new Store()
-    , p = null
+    }),
+    Login,
+    User.userId
+  ], {
+    altid: 'sessid',
+    methods: {
+      async userFromSession (store, sessid) {
+        const { userId } = await this.byId(store, sessid)
+        return await User.byId(store, userId)
+      },
+      async deleteAll (store) {
+        for (const [k] of store.find()) {
+          await store.del(k)
+        }
+      }
+    },
+    statics: {
+      Login
+    }
+  })
+  const store = new Store()
+  let p = null
 
   t.ok('userFromSession' in Session)
 
   await store.set('User: 11', { userId: '11', login: 'foo' })
   await store.set('User: 12', { userId: '12', login: 'bar' })
   await store.set('Session: 42', { sessid: '42', foo: 'bar' })
-  t.ok('undefined' === typeof await Session.sessid.validate(store, { sessid: '42' }))
+  t.ok(typeof await Session.sessid.validate(store, { sessid: '42' }) === 'undefined')
 
-  t.ok('undefined' === typeof await Session.asNew().validate(store, p = { login: 'foo', userId: '11' }))
+  t.ok(typeof await Session.asNew().validate(store, p = { login: 'foo', userId: '11' }) === 'undefined')
 
   await Session.asNew().validate(store, { login: 'foo', userId: '13' })
     .then(() => t.fail('should throw'))
@@ -138,13 +137,13 @@ test('Entity Session, custom id, foreign key, methods', async function (t) {
 
   await Session.save(store, p)
 
-  let u = await Session.userFromSession(store, p.sessid)
+  const u = await Session.userFromSession(store, p.sessid)
 
   t.deepEqual(u, { userId: '11', login: 'foo' })
 
   await Session.deleteAll(store)
 
-  for (let e of Session.find(store, p.sessid)) {
+  for (const e of Session.find(store, p.sessid)) {
     t.fail('should not be here ' + e)
   }
 
@@ -158,34 +157,34 @@ test('Entity Session, custom id, foreign key, methods', async function (t) {
 
 test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
   class ChatroomModel extends Model {
-    addMessage(str) {
+    addMessage (str) {
       this.message.push(str)
     }
   }
-  let Entities = new Registry().withProxy()
-    , User = Entities.add('User', [
-      Str('login').regex(/^\w{2,}$/),
-    ])
-    , Chatroom = Entities.add('Chatroom', [
-      Str('name').regex(/^.{0,64}$/),
-      Dict('users', User.id, User.login),
-      List('message', Str())
-    ], {
-      model: ChatroomModel
-    })
-    , store = new Store()
-    , p = null
-    , ts = new Date()
+  const Entities = new Registry().withProxy()
+  const User = Entities.add('User', [
+    Str('login').regex(/^\w{2,}$/)
+  ])
+  const Chatroom = Entities.add('Chatroom', [
+    Str('name').regex(/^.{0,64}$/),
+    Dict('users', User.id, User.login),
+    List('message', Str())
+  ], {
+    model: ChatroomModel
+  })
+  const store = new Store()
+  let p = null
+  const ts = new Date()
 
   await store.set('User: 11', { userId: '11', login: 'foo' })
   await store.set('User: 12', { userId: '12', login: 'bar' })
-  await store.set('Chatroom: 42', { chatroomId: '42', name: 'Foo\'s nest', users: { '11': 'foo' }, message: ['Welcome to Foo\'snest!'] })
+  await store.set('Chatroom: 42', { chatroomId: '42', name: 'Foo\'s nest', users: { 11: 'foo' }, message: ['Welcome to Foo\'snest!'] })
 
-  t.ok('undefined' === typeof await Chatroom.id.validate(store, { chatroomId: '42' }))
-  t.ok('undefined' === typeof await Chatroom.asNew().validate(store, p = { name: 'bar', users: { '11': 'foo', '12': 'bar' }, message: [] }, ts))
+  t.ok(typeof await Chatroom.id.validate(store, { chatroomId: '42' }) === 'undefined')
+  t.ok(typeof await Chatroom.asNew().validate(store, p = { name: 'bar', users: { 11: 'foo', 12: 'bar' }, message: [] }, ts) === 'undefined')
   await Chatroom.save(store, p)
 
-  await Chatroom.asNew().validate(store, { name: 'barbar', users: { '11': 'foo', '12': 'bar', '13': 'dude' }, message: ['welcome'] }, ts) // same timestamp, but we should be covered by default algo impl
+  await Chatroom.asNew().validate(store, { name: 'barbar', users: { 11: 'foo', 12: 'bar', 13: 'dude' }, message: ['welcome'] }, ts) // same timestamp, but we should be covered by default algo impl
     .then(() => t.fail('should throw'))
     .catch(e => {
       t.ok(e instanceof InvalidRuleError)
@@ -196,7 +195,7 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
 
   t.ok(chatroom instanceof ChatroomModel)
 
-  for (let [, c] of Chatroom.find(store)) {
+  for (const [, c] of Chatroom.find(store)) {
     t.ok(c instanceof ChatroomModel)
   }
 
@@ -209,12 +208,12 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
   chatroom.name = 'rebar'
   chatroom.addMessage('plop plop')
 
-  t.ok('undefined' === typeof await Chatroom.existing().validate(store, chatroom))
+  t.ok(typeof await Chatroom.existing().validate(store, chatroom) === 'undefined')
   await Chatroom.save(store, chatroom)
 
   chatroom = await Chatroom.findOne(store, ([, x]) => x.name === 'rebar')
   t.ok(chatroom instanceof ChatroomModel)
-  t.deepEqual(chatroom, new ChatroomModel({ chatroomId: p.chatroomId, name: 'rebar', users: { '11': 'foo', '12': 'bar' }, message: ['plop plop'] }))
+  t.deepEqual(chatroom, new ChatroomModel({ chatroomId: p.chatroomId, name: 'rebar', users: { 11: 'foo', 12: 'bar' }, message: ['plop plop'] }))
 
   t.ok(await Chatroom.exists(store, p.chatroomId))
   await Chatroom.unsub(store, 'me', p.chatroomId) // to avoid delete pub
@@ -226,13 +225,13 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
 })
 
 test('Entity Bad Model', async function (t) {
-  let Entities = new Registry().withProxy()
-    , Bad = Entities.add('Bad', [
-      Str('foo'),
-    ], {
-      model: class BadModel { }
-    })
-    , store = new Store()
+  const Entities = new Registry().withProxy()
+  const Bad = Entities.add('Bad', [
+    Str('foo')
+  ], {
+    model: class BadModel { }
+  })
+  const store = new Store()
 
   await store.set('Bad: 11', { badId: '11', foo: 'foo' })
 
