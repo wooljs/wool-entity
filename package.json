@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/nicocube/wool-entity#readme",
   "dependencies": {
-    "wool-validate": "^2.4.4"
+    "wool-validate": "^2.5.0"
   },
   "devDependencies": {
     "@freecube/tap-summary": "^4.0.4",
