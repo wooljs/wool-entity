@@ -107,7 +107,7 @@ test('Entity Session, custom id, foreign key, methods', async function (t) {
         return await User.byId(store, userId)
       },
       async deleteAll (store) {
-        for (const [k] of store.find()) {
+        for await (const [k] of store.find()) {
           await store.del(k)
         }
       }
@@ -143,7 +143,7 @@ test('Entity Session, custom id, foreign key, methods', async function (t) {
 
   await Session.deleteAll(store)
 
-  for (const e of Session.find(store, p.sessid)) {
+  for await (const e of Session.find(store, p.sessid)) {
     t.fail('should not be here ' + e)
   }
 
@@ -195,7 +195,7 @@ test('Entity Chatroom, Dict of foreign key, Model', async function (t) {
 
   t.ok(chatroom instanceof ChatroomModel)
 
-  for (const [, c] of Chatroom.find(store)) {
+  for await (const [, c] of Chatroom.find(store)) {
     t.ok(c instanceof ChatroomModel)
   }
 

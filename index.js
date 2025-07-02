@@ -9,6 +9,10 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
+// JSDocs
+// eslint-disable-next-line no-unused-vars
+import { Store } from 'wool-store'
+
 import { InvalidRuleError, Id, Multi } from 'wool-validate'
 
 export class InvalidEntityError extends InvalidRuleError {
@@ -159,8 +163,13 @@ export class Entity extends WithProxy {
     return this.modelize(await store.get(this.fid.as(id)))
   }
 
-  find (store, q) {
-    q = q || (() => true)
+  /**
+   * Find elements matching a filtering function
+   * @param {Store} store
+   * @param {() => boolean} q
+   * @returns
+   */
+  find (store, q = () => true) {
     if (!this.model) {
       return store.find(([k, v]) => this.fid.isOne(k) && q([k, v]))
     } else {
@@ -168,9 +177,15 @@ export class Entity extends WithProxy {
     }
   }
 
-  count (store, q) {
+  /**
+   * Count elements matching a filtering function
+   * @param {Store} store
+   * @param {() => boolean} q
+   * @returns {number}
+   */
+  async count (store, q) {
     let count = 0
-    for (const [,] of this.find(store, q)) {
+    for await (const [,] of this.find(store, q)) {
       count++
     }
     return count
