@@ -15,15 +15,7 @@ import { Store } from 'wool-store'
 
 import { InvalidRuleError, Id, Multi } from 'wool-validate'
 
-export class InvalidEntityError extends InvalidRuleError {
-  constructor (message, ...params) {
-    const f = (p) => (p && (typeof p === 'object') && p.toString().startsWith('[object')) ? JSON.stringify(p) : p
-    super(message + (params.length > 0 ? '(' + params.map(f).join(', ') + ')' : ''))
-    this.name = this.constructor.name
-    Error.captureStackTrace(this, this.constructor)
-    this.params = params
-  }
-}
+export class InvalidEntityError extends InvalidRuleError {}
 
 class WithProxy {
   constructor () {
@@ -203,6 +195,22 @@ export class Entity extends WithProxy {
     await store.del(this.fid.as(k))
   }
 
+  /**
+   * Check if a subscription exists for the entity matching given key
+   *
+   * @param {Store} store
+   * @param {string} src
+   * @param {string} k
+   * @returns {boolean}
+   */
+  async hasSub (store, src, k) {
+    return await store.hasSub(src, this.fid.as(k))
+  }
+
+  async unsub (store, src, k) {
+    await store.unsub(src, this.fid.as(k))
+  }
+
   async sub (store, src, k, cb, now) {
     await store.sub(src, this.fid.as(k), cb, now)
   }
@@ -211,12 +219,41 @@ export class Entity extends WithProxy {
     await store.pub(this.fid.as(k))
   }
 
-  async hasSub (store, src, k) {
-    return await store.hasSub(src, this.fid.as(k))
+  /**
+   * Check if a subscription exists for all entities of this type
+   *
+   * @param {Store} store
+   * @param {string} src
+   * @returns {boolean}
+   */
+  async hasSubAll (store, src) {
+    return await store.hasSubGlobal(src)
   }
 
-  async unsub (store, src, k) {
-    await store.unsub(src, this.fid.as(k))
+  /**
+   * Subscribe `src` for all entities of this type
+   *
+   * @param {Store} store
+   * @param {string} src
+   * @param {function(k: string, v: any, t: PubSubType):void} cb The callback triggered when a publish is triggered on the store
+   * @returns {boolean}
+   */
+  async subAll (store, src, cb) {
+    await store.subGlobal(src, async (k, v, t) => {
+      if (this.isOne(k)) {
+        await cb(k, v, t)
+      }
+    })
+  }
+
+  /**
+   * Unsubscribe `src` for all entities of this type
+   *
+   * @param {Store} store
+   * @param {string} src
+   */
+  async unsubAll (store, src) {
+    await store.unsubGlobal(src)
   }
 }
 
